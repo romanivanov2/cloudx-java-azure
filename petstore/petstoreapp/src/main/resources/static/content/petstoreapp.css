@@ -17,6 +17,10 @@
 	font-weight: 600;color: #3C7BB7;
 }
 
+.subHeaderRed {
+	font-weight: 600;color: darkred;
+}
+
 a {
 	text-decoration:none !important;
 }
