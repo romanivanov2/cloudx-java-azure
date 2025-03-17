@@ -93,6 +93,12 @@
             <artifactId>mapstruct</artifactId>
             <version>${org.mapstruct.version}</version>
         </dependency>
+        <!-- enable Application Insights Java programmatically -->
+        <dependency>
+            <groupId>com.microsoft.azure</groupId>
+            <artifactId>applicationinsights-runtime-attach</artifactId>
+            <version>3.7.1</version>
+        </dependency>
     </dependencies>
 
     <build>

@@ -22,6 +22,8 @@ import com.microsoft.applicationinsights.TelemetryClient;
 @Scope(value = "session", proxyMode = ScopedProxyMode.TARGET_CLASS)
 @SuppressWarnings("serial")
 public class User implements Serializable {
+	@Autowired(required = false)
+	private transient com.microsoft.applicationinsights.TelemetryClient telemetryClient;
 	private String name = "Guest";
 	private String sessionId = null;
 	private String email = null;
@@ -34,8 +36,6 @@ public class User implements Serializable {
 	// time to show Telemetry with APIM requests
 	private List<Product> products;
 
-	@Autowired(required = false)
-	private transient TelemetryClient telemetryClient;
 
 	@Autowired
 	private ContainerEnvironment containerEnvironment;
@@ -47,7 +47,7 @@ public class User implements Serializable {
 	@PostConstruct
 	private void initialize() {
 		if (this.telemetryClient == null) {
-			this.telemetryClient = new com.chtrembl.petstoreapp.service.TelemetryClient();
+			this.telemetryClient = new com.microsoft.applicationinsights.TelemetryClient();
 		}
 	}
 

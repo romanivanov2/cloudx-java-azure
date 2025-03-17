@@ -1,5 +1,6 @@
 package io.swagger;
 
+import com.microsoft.applicationinsights.attach.ApplicationInsights;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.ExitCodeGenerator;
 import org.springframework.boot.SpringApplication;
@@ -35,6 +36,8 @@ public class Swagger2SpringBoot implements CommandLineRunner {
 	}
 
 	public static void main(String[] args) throws Exception {
+		// Invoke the ApplicationInsights.attach() method in the beginning of main() method.
+		ApplicationInsights.attach();
 		new SpringApplication(Swagger2SpringBoot.class).run(args);
 	}
 

@@ -20,7 +20,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -31,6 +30,7 @@ import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -118,8 +118,26 @@ public class PetStoreServiceImpl implements PetStoreService {
 	}
 
 	@Override
-	public Collection<Product> getProducts(String category, List<Tag> tags) {
+	public Collection<Product> getProducts(String category, List<Tag> tags) throws Exception {
+
+		// Introduce an error in PetStoreServiceImpl.getProducts()
+		if (true) {
+			throw new Exception("Cannot move further");
+		}
+
 		List<Product> products = new ArrayList<>();
+		// logger
+		logger.info("method PetStoreService.getProducts() called by user {} during session {}",
+				this.sessionUser.getName(),
+				this.sessionUser.getSessionId());
+
+		//  Telemetry Client
+		this.sessionUser.getTelemetryClient().trackEvent(
+				String.format("PetStoreApp user %s is requesting to retrieve products from the PetStoreProductService during %s session",
+						this.sessionUser.getName(),
+                        this.sessionUser.getSessionId()),
+                this.sessionUser.getCustomEventProperties(),
+                null);
 
 		try {
 			Consumer<HttpHeaders> consumer = it -> it.addAll(this.webRequest.getHeaders());
@@ -148,10 +166,23 @@ public class PetStoreServiceImpl implements PetStoreService {
 				products = products.stream().filter(product -> category.equals(product.getCategory().getName())
 						&& product.getTags().toString().contains("small")).collect(Collectors.toList());
 			}
-			return products;
-		} catch (
 
-		WebClientException wce) {
+			// add logging to PetStoreServiceImpl.getProducts() for the number of items that were returned to the user.
+			logger.info("PetStoreProductService returns {} products to PetStoreApp user {}",
+					products.size(),
+					this.sessionUser.getName());
+
+			// add this quantity as a custom metric
+			this.sessionUser.getTelemetryClient().trackEvent(
+					String.format("PetStoreProductService returns %d products to PetStoreApp user %s",
+							products.size(),
+							this.sessionUser.getName()),
+					this.sessionUser.getCustomEventProperties(),
+					Map.of("number_of_products_returned_to_user", (double) products.size()));
+
+			return products;
+
+		} catch (WebClientException wce) {
 			// little hack to visually show the error message within our Azure Pet Store
 			// Reference Guide (Academic Tutorial)
 			Product product = new Product();

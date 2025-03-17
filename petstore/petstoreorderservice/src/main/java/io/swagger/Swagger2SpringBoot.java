@@ -1,6 +1,7 @@
 package io.swagger;
 
 import com.chtrembl.petstore.order.model.ContainerEnvironment;
+import com.microsoft.applicationinsights.attach.ApplicationInsights;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
@@ -40,6 +41,8 @@ public class Swagger2SpringBoot implements CommandLineRunner {
 	}
 
 	public static void main(String[] args) throws Exception {
+		// Invoke the ApplicationInsights.attach() method in the beginning of main() method.
+		ApplicationInsights.attach();
 		new SpringApplication(Swagger2SpringBoot.class).run(args);
 	}
 

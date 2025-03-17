@@ -1,5 +1,6 @@
 package com.chtrembl.petstoreapp;
 
+import com.microsoft.applicationinsights.attach.ApplicationInsights;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
@@ -13,6 +14,10 @@ public class PetstoreappApplication {
 	private static Logger logger = LoggerFactory.getLogger(PetstoreappApplication.class);
 
 	public static void main(String[] args) {
+
+		// Invoke the ApplicationInsights.attach() method in the beginning of main() method.
+		ApplicationInsights.attach();
+
 		SpringApplication.run(PetstoreappApplication.class, args);
 		logger.info("PetStoreApp started up... " + System.getProperty("catalina.base"));
 		try {
