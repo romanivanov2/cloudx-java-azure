@@ -10,6 +10,8 @@ petstore:
   service:
     product:
       url: ${PETSTOREPRODUCTSERVICE_URL:http://localhost:8082}
+    order-items-reserver:
+      url: ${PETSTORE_ORDER_ITEMS_RESERVER_SERVICE_URL:http://localhost:7071/api/orders}
 
 spring:
   application:
