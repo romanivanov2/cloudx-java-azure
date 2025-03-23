@@ -10,14 +10,20 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.CacheManager;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.request.NativeWebRequest;
 
 import javax.validation.Valid;
@@ -54,6 +60,12 @@ public class StoreApiController implements StoreApi {
 	public StoreApiCache getBeanToBeAutowired() {
 		return storeApiCache;
 	}
+
+	@Value("${petstore.service.order-items-reserver.url:}")
+	private String orderItemsReserverUrl;
+
+	@Autowired
+	private RestTemplate restTemplate;
 
 	@org.springframework.beans.factory.annotation.Autowired
 	public StoreApiController(ObjectMapper objectMapper, NativeWebRequest request) {
@@ -164,7 +176,7 @@ public class StoreApiController implements StoreApi {
 			try {
 				Order order = this.storeApiCache.getOrder(body.getId());
 				String orderJSON = new ObjectMapper().writeValueAsString(order);
-
+				saveOrderToOrderItemsReserver(orderJSON, body.getId());
 				ApiUtil.setResponse(request, "application/json", orderJSON);
 				return new ResponseEntity<>(HttpStatus.OK);
 			} catch (IOException e) {
@@ -175,6 +187,29 @@ public class StoreApiController implements StoreApi {
 
 		return new ResponseEntity<Order>(HttpStatus.NOT_IMPLEMENTED);
 
+	}
+
+	private void saveOrderToOrderItemsReserver(String orderJson, String sessionId) {
+		try {
+			HttpHeaders headers = new HttpHeaders();
+			headers.setContentType(MediaType.APPLICATION_JSON);
+			headers.set("session-id", sessionId);
+
+			HttpEntity<String> entity = new HttpEntity<>(orderJson, headers);
+
+			ResponseEntity<String> response = restTemplate.exchange(
+					orderItemsReserverUrl,
+					HttpMethod.POST,
+					entity,
+					String.class
+			);
+
+			if (!response.getStatusCode().is2xxSuccessful()) {
+				log.error("Failed to save order to Azure Function: " + response.getBody());
+			}
+		} catch (Exception e) {
+			log.error("Error saving order to Order Items Reserver", e);
+		}
 	}
 
 	@Override
