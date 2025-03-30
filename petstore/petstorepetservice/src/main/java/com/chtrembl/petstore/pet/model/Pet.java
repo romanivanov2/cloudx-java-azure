@@ -4,9 +4,22 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import javax.persistence.Column;
+import javax.persistence.Convert;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
+import com.chtrembl.petstore.pet.convertor.StatusEnumConverter;
 import org.springframework.validation.annotation.Validated;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -20,21 +33,34 @@ import io.swagger.annotations.ApiModelProperty;
  */
 @Validated
 @javax.annotation.Generated(value = "io.swagger.codegen.languages.SpringCodegen", date = "2021-12-20T15:31:39.272-05:00")
-
+@Entity
+@Table(name = "pet")
 public class Pet {
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@JsonProperty("id")
 	private Long id;
 
+	@ManyToOne(fetch = FetchType.EAGER)
+	@JoinColumn(name = "category_id", nullable = false)
 	@JsonProperty("category")
 	private Category category;
 
+	@Column(name = "name", length = 64, nullable = false, unique = true)
 	@JsonProperty("name")
 	private String name;
 
+	@Column(name = "photoURL", nullable = false)
 	@JsonProperty("photoURL")
 	@Valid
 	private String photoURL;
 
+	@ManyToMany(fetch = FetchType.EAGER)
+	@JoinTable(
+			name = "pet_tag",
+			joinColumns = @JoinColumn(name = "pet_id"),
+			inverseJoinColumns = @JoinColumn(name = "tag_id")
+	)
 	@JsonProperty("tags")
 	@Valid
 	private List<Tag> tags = null;
@@ -76,6 +102,9 @@ public class Pet {
 		}
 	}
 
+	@Convert(converter = StatusEnumConverter.class) // to convert the enum to string and vice versa (status set in lower case)
+	// @Enumerated(EnumType.STRING) // the status field should be set with upper case for this annotation to work
+	@Column(name = "status", length = 64, nullable = false)
 	@JsonProperty("status")
 	private StatusEnum status;
 
