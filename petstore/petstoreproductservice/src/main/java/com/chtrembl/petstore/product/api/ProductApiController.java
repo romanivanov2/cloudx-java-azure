@@ -8,6 +8,7 @@ import java.util.List;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
+import com.chtrembl.petstore.product.service.ProductService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -57,11 +58,14 @@ public class ProductApiController implements ProductApi {
 		return dataPreload;
 	}
 
+	private final ProductService productService;
+
 	@org.springframework.beans.factory.annotation.Autowired
-	public ProductApiController(ObjectMapper objectMapper, NativeWebRequest request) {
+	public ProductApiController(ObjectMapper objectMapper, NativeWebRequest request, ProductService productService) {
 		this.objectMapper = objectMapper;
 		this.request = request;
-	}
+        this.productService = productService;
+    }
 
 	// should really be in an interceptor
 	public void conigureThreadForLogging() {
@@ -93,16 +97,14 @@ public class ProductApiController implements ProductApi {
 			@NotNull @ApiParam(value = "Status values that need to be considered for filter", required = true, allowableValues = "available, pending, sold") @Valid @RequestParam(value = "status", required = true) List<String> status) {
 		conigureThreadForLogging();
 
-		String acceptType = request.getHeader("Content-Type");
-		String contentType = request.getHeader("Content-Type");
-		if (acceptType != null && contentType != null && acceptType.contains("application/json")
-				&& contentType.contains("application/json")) {
 			ProductApiController.log.info(String.format(
 					"PetStoreProductService incoming GET request to petstoreproductservice/v2/pet/findProductsByStatus?status=%s",
 					status));
 			try {
-				List<Product> products = this.getPreloadedProducts();
+
+				List<Product> products = productService.findProductsByStatus(status);
 				String petsJSON = new ObjectMapper().writeValueAsString(products);
+
 				ApiUtil.setResponse(request, "application/json", petsJSON);
 				return new ResponseEntity<>(HttpStatus.OK);
 			} catch (JsonProcessingException e) {
@@ -110,9 +112,7 @@ public class ProductApiController implements ProductApi {
 				ApiUtil.setResponse(request, "application/json", e.getMessage());
 				return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 			}
-		}
 
-		return new ResponseEntity<List<Product>>(HttpStatus.NOT_IMPLEMENTED);
 	}
 
 	@Override
