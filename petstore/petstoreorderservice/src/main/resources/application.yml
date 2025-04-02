@@ -18,6 +18,15 @@ spring:
     pathmatch:
       matching-strategy: ant_path_matcher
 
+azure:
+  cosmos:
+    uri: ${AZURE_COSMOS_URI}
+    key: ${AZURE_COSMOS_KEY}
+    database: ${AZURE_COSMOS_DATABASE}
+    container:
+      name: ${AZURE_COSMOS_CONTAINER_NAME}
+      partition-key-path: ${AZURE_COSMOS_PARTITION_KEY_PATH}
+
 management:
   endpoints:
     web:
