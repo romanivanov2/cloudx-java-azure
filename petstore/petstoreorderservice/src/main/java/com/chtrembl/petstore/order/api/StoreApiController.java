@@ -1,5 +1,6 @@
 package com.chtrembl.petstore.order.api;
 
+import com.azure.messaging.servicebus.ServiceBusMessage;
 import com.chtrembl.petstore.order.model.ContainerEnvironment;
 import com.chtrembl.petstore.order.model.Order;
 import com.chtrembl.petstore.order.model.Product;
@@ -56,16 +57,13 @@ public class StoreApiController implements StoreApi {
 	@Autowired
 	private StoreApiCache storeApiCache;
 
+	@Autowired
+	private OrderServiceBusSender orderServiceBusSender;
+
 	@Override
 	public StoreApiCache getBeanToBeAutowired() {
 		return storeApiCache;
 	}
-
-	@Value("${petstore.service.order-items-reserver.url:}")
-	private String orderItemsReserverUrl;
-
-	@Autowired
-	private RestTemplate restTemplate;
 
 	@org.springframework.beans.factory.annotation.Autowired
 	public StoreApiController(ObjectMapper objectMapper, NativeWebRequest request) {
@@ -191,24 +189,12 @@ public class StoreApiController implements StoreApi {
 
 	private void saveOrderToOrderItemsReserver(String orderJson, String sessionId) {
 		try {
-			HttpHeaders headers = new HttpHeaders();
-			headers.setContentType(MediaType.APPLICATION_JSON);
-			headers.set("session-id", sessionId);
 
-			HttpEntity<String> entity = new HttpEntity<>(orderJson, headers);
+			orderServiceBusSender.sendOrderToQueue(orderJson, sessionId);
 
-			ResponseEntity<String> response = restTemplate.exchange(
-					orderItemsReserverUrl,
-					HttpMethod.POST,
-					entity,
-					String.class
-			);
-
-			if (!response.getStatusCode().is2xxSuccessful()) {
-				log.error("Failed to save order to Azure Function: " + response.getBody());
-			}
+			log.info("Order sent to Service Bus queue successfully. Session ID: {}", sessionId);
 		} catch (Exception e) {
-			log.error("Error saving order to Order Items Reserver", e);
+			log.error("Error sending order to Service Bus queue", e);
 		}
 	}
 

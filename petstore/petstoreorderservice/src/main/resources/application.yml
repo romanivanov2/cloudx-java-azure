@@ -20,6 +20,11 @@ spring:
     pathmatch:
       matching-strategy: ant_path_matcher
 
+azure:
+  servicebus:
+    connection-string: ${SERVICE_BUS_CONNECTION_STRING}
+    queue-name: orders
+
 management:
   endpoints:
     web:
