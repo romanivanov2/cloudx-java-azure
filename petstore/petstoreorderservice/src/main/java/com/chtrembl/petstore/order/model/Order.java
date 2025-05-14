@@ -26,6 +26,9 @@ public class Order implements Serializable {
 	@JsonProperty("id")
 	private String id = null;
 
+	@JsonProperty("sessionId")
+	private String sessionId = null;
+
 	@JsonProperty("email")
 	private String email = null;
 
@@ -97,6 +100,14 @@ public class Order implements Serializable {
 
 	public void setId(String id) {
 		this.id = id;
+	}
+
+	public String getSessionId() {
+		return sessionId;
+	}
+
+	public void setSessionId(String sessionId) {
+		this.sessionId = sessionId;
 	}
 
 	public String getEmail() {
