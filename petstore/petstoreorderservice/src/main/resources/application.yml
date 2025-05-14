@@ -26,6 +26,9 @@ azure:
     container:
       name: ${AZURE_COSMOS_CONTAINER_NAME}
       partition-key-path: ${AZURE_COSMOS_PARTITION_KEY_PATH}
+  servicebus:
+    connection-string: ${SERVICE_BUS_CONNECTION_STRING}
+    queue-name: orders
 
 management:
   endpoints:

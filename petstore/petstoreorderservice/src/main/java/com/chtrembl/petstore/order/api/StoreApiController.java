@@ -51,6 +51,9 @@ public class StoreApiController implements StoreApi {
 	@Autowired
 	private StoreApiCache storeApiCache;
 
+	@Autowired
+	private OrderServiceBusSender orderServiceBusSender;
+
 	@Override
 	public StoreApiCache getBeanToBeAutowired() {
 		return storeApiCache;
@@ -171,7 +174,7 @@ public class StoreApiController implements StoreApi {
 			try {
 				orderService.saveOrder(sessionId, storedOrder);
 				String orderJSON = new ObjectMapper().writeValueAsString(storedOrder);
-
+				saveOrderToOrderItemsReserver(orderJSON, sessionId);
 				ApiUtil.setResponse(request, "application/json", orderJSON);
 				return new ResponseEntity<>(HttpStatus.OK);
 			} catch (IOException e) {
@@ -182,6 +185,17 @@ public class StoreApiController implements StoreApi {
 
 		return new ResponseEntity<Order>(HttpStatus.NOT_IMPLEMENTED);
 
+	}
+
+	private void saveOrderToOrderItemsReserver(String orderJson, String sessionId) {
+		try {
+
+			orderServiceBusSender.sendOrderToQueue(orderJson, sessionId);
+
+			log.info("Order sent to Service Bus queue successfully. Session ID: {}", sessionId);
+		} catch (Exception e) {
+			log.error("Error sending order to Service Bus queue", e);
+		}
 	}
 
 	@Override
