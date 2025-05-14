@@ -200,7 +200,7 @@ public class StoreApiController implements StoreApi {
 
 			List<Product> products = this.storeApiCache.getProducts();
 
-			Order order = this.storeApiCache.getOrder(orderId);
+			Order order = orderService.getOrder(orderId);
 
 			if (products != null) {
 				// cross reference order data (order only has product id and qty) with product
